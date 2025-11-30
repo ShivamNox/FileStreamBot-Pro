@@ -15,7 +15,8 @@ class Var(object):
     name = str(getenv('name', 'FileStreamBot')) #Optional
     SLEEP_THRESHOLD = int(getenv('SLEEP_THRESHOLD', '60')) #Leave as it is.
     WORKERS = int(getenv('WORKERS', '4')) #Leave as it is.
-    LOG_CHANNEL = int(getenv('LOG_CHANNEL', '-100xxxxxxxxxx'))  #Required
+    BIN_CHANNEL = int(getenv('BIN_CHANNEL', '-100xxxxxxxxxx')) #Required
+    LOG_CHANNEL = int(getenv('LOG_CHANNEL', '-100xxxxxxxxxx'))  #Required (Same as BIN_CHANNEL)
     PORT = int(getenv('PORT', '3000')) #Leave as it is.
     BIND_ADRESS = str(getenv('WEB_SERVER_BIND_ADDRESS', '0.0.0.0')) #Leave as it is.
     PING_INTERVAL = int(environ.get("PING_INTERVAL", "1200"))  # 20 minutes

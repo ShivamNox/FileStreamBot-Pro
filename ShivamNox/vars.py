@@ -9,18 +9,18 @@ load_dotenv()
 
 class Var(object):
     MULTI_CLIENT = False
-    API_ID = int(getenv('API_ID', ' '))  #Required
+    API_ID = int(getenv('API_ID', '0'))  #Required
     API_HASH = str(getenv('API_HASH', ' ')) #Required
     BOT_TOKEN = str(getenv('BOT_TOKEN', ' ')) #Required
     name = str(getenv('name', 'FileStreamBot')) #Optional
     SLEEP_THRESHOLD = int(getenv('SLEEP_THRESHOLD', '60')) #Leave as it is.
     WORKERS = int(getenv('WORKERS', '4')) #Leave as it is.
-    BIN_CHANNEL = int(getenv('BIN_CHANNEL', '-100xxxxxxxxxx')) #Required
-    LOG_CHANNEL = int(getenv('LOG_CHANNEL', '-100xxxxxxxxxx'))  #Required (Same as BIN_CHANNEL)
+    BIN_CHANNEL = int(getenv('BIN_CHANNEL', '0')) #Required
+    LOG_CHANNEL = int(getenv('LOG_CHANNEL', '0'))  #Required (Same as BIN_CHANNEL)
     PORT = int(getenv('PORT', '3000')) #Leave as it is.
     BIND_ADRESS = str(getenv('WEB_SERVER_BIND_ADDRESS', '0.0.0.0')) #Leave as it is.
     PING_INTERVAL = int(environ.get("PING_INTERVAL", "1200"))  # 20 minutes
-    OWNER_ID = set(int(x) for x in os.environ.get("OWNER_ID", " ").split())  #Required
+    OWNER_ID = set(int(x) for x in os.environ.get("OWNER_ID", "0").split())  #Required
     NO_PORT = bool(getenv('NO_PORT', False)) #Leave as it is.
     APP_NAME = None
     OWNER_USERNAME = str(getenv('OWNER_USERNAME', ' ')) #Required

@@ -88,6 +88,7 @@ API_HASH=52b6dfbaee00000000cefbea7c2e04
 BOT_TOKEN=your_bot_token_here
 BIN_CHANNEL=-1002044705664
 DATABASE_URL=your_mongodb_connection_url
+SERVER_URL=https://your-server-url.com
 OWNER_ID=Owner_id
 OWNER_USERNAME=Username
 UPDATES_CHANNEL=channel_username

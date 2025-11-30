@@ -47,6 +47,7 @@ Below are the environment variables used by the bot:
 | `OWNER_USERNAME`          | Bot owner’s Telegram username                                | ✅        | `shivamnox`                                      |
 | `FQDN`                    | Fully qualified domain name                                  | ❌        | `0.0.0.0:3000`                                   |
 | `HAS_SSL`                 | Enable SSL for bot URL                                       | ❌        | `False`                                          |
+| `SERVER_URL`              | Your Serer Url                                               | ✅        | `https://your-app-name.com`                      |
 | `DATABASE_URL`            | MongoDB connection string                                    | ✅        | `mongodb+srv://...`                              |
 | `UPDATES_CHANNEL`         | Telegram updates/news channel username                       | ✅        | `hivajoyweb`                                     |
 | `BANNED_CHANNELS`         | List of banned channel IDs                                   | ❌        | `-1001362659779`                                 |

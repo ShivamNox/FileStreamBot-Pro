@@ -18,6 +18,28 @@ MY_PASS = os.environ.get("MY_PASS", None)
 pass_dict = {}
 pass_db = Database(Var.DATABASE_URL, "ag_passwords")
 
+# ✅ Simple flag
+_channel_cached = False
+
+
+async def cache_channel(c: Client):
+    """Cache BIN_CHANNEL by loading all dialogs"""
+    global _channel_cached
+    
+    if _channel_cached:
+        return
+    
+    try:
+        # This loads all chats into Pyrogram's cache
+        async for dialog in c.get_dialogs():
+            if dialog.chat.id == Var.BIN_CHANNEL:
+                print(f"✅ BIN_CHANNEL cached: {dialog.chat.title}")
+                break
+        _channel_cached = True
+    except Exception as e:
+        print(f"Cache error: {e}")
+        _channel_cached = True  # Don't retry on error
+
 
 @StreamBot.on_message((filters.regex("login🔑") | filters.command("login")), group=4)
 async def login_handler(c: Client, m: Message):
@@ -59,6 +81,9 @@ async def private_receive_handler(c: Client, m: Message):
         if check_pass != MY_PASS:
             await pass_db.delete_user(m.chat.id)
             return
+
+    # ✅ Cache channel on first use
+    await cache_channel(c)
 
     if not await db.is_user_exist(m.from_user.id):
         await db.add_user(m.from_user.id)
@@ -118,8 +143,8 @@ async def private_receive_handler(c: Client, m: Message):
             reply_markup=InlineKeyboardMarkup(
                 [
                     [
-                        InlineKeyboardButton("STREAM 🖥", url=stream_link),  # Stream Link
-                        InlineKeyboardButton('DOWNLOAD 📥', url=online_link)  # Download Link
+                        InlineKeyboardButton("STREAM 🖥", url=stream_link),
+                        InlineKeyboardButton('DOWNLOAD 📥', url=online_link)
                     ]
                 ]
             )
@@ -151,6 +176,9 @@ async def channel_receive_handler(bot, broadcast):
         return
     
     try:
+        # ✅ Cache channel
+        await cache_channel(bot)
+        
         log_msg = await broadcast.forward(chat_id=Var.BIN_CHANNEL)
         stream_link = f"{Var.URL}watch/{str(log_msg.id)}?hash={get_hash(log_msg)}"
         online_link = f"{Var.URL}dl/{str(log_msg.id)}?hash={get_hash(log_msg)}"
@@ -185,4 +213,4 @@ async def channel_receive_handler(bot, broadcast):
             text=f"**#ERROR_TRACKEBACK:** `{e}`",
             disable_web_page_preview=True
         )
-        print(f"Cᴀɴ'ᴛ Eᴅɪᴛ Bʀᴏᴀᴅᴄᴀsᴛ Mᴇssᴀɢᴇ!\nEʀʀᴏʀ:  **Give me edit permission in updates and bin Channel!{e}**")/{quote_plus(get_name(log_msg))}
+        print(f"Can't Edit Broadcast Message!\nError: {e}")

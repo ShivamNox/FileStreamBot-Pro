@@ -19,48 +19,43 @@ class StreamBotClient(Client):
             sleep_threshold=Var.SLEEP_THRESHOLD,
             workers=Var.WORKERS
         )
+        self.username = None
+        self.me = None
+        self._channel_ready = asyncio.Event()
     
     async def start(self):
         await super().start()
+        self.me = await self.get_me()
+        self.username = self.me.username
+        logger.info(f"✅ Bot started as @{self.username}")
         
-        # ✅ FIX: Force cache BIN_CHANNEL on startup
-        try:
-            # Method 1: Try to send and delete a message
-            msg = await self.send_message(Var.BIN_CHANNEL, "🔄 Initializing bot...")
-            await msg.delete()
-            logger.info(f"✅ BIN_CHANNEL resolved successfully")
-        except Exception as e:
-            logger.warning(f"First attempt failed: {e}")
-            
-            # Method 2: Get all dialogs to cache everything
-            try:
-                me = await self.get_me()
-                # For bots, we need to iterate through chats differently
-                # Try to access using raw API
-                from pyrogram.raw import functions
-                result = await self.invoke(
-                    functions.messages.GetDialogs(
-                        offset_date=0,
-                        offset_id=0,
-                        offset_peer=await self.resolve_peer("me"),
-                        limit=100,
-                        hash=0
-                    )
-                )
-                logger.info(f"✅ Loaded {len(result.chats)} chats")
-                
-                # Now try again
-                msg = await self.send_message(Var.BIN_CHANNEL, "✅")
-                await msg.delete()
-                logger.info(f"✅ BIN_CHANNEL resolved after loading chats")
-            except Exception as e2:
-                logger.error(f"❌ Cannot resolve BIN_CHANNEL: {e2}")
-                logger.error(f"Make sure bot is admin in channel ID: {Var.BIN_CHANNEL}")
+        # Resolve BIN_CHANNEL with retry
+        from .channel_fix import ensure_bin_channel
+        
+        for attempt in range(3):
+            logger.info(f"🔄 Resolving BIN_CHANNEL (attempt {attempt + 1}/3)")
+            if await ensure_bin_channel(self, Var.BIN_CHANNEL):
+                self._channel_ready.set()
+                logger.info("✅ BIN_CHANNEL is ready!")
+                break
+            await asyncio.sleep(5)
+        else:
+            logger.error("❌ Failed to resolve BIN_CHANNEL after 3 attempts")
+            logger.error(f"Make sure bot is admin in channel ID: {Var.BIN_CHANNEL}")
         
         return self
+    
+    async def wait_channel_ready(self, timeout=60):
+        try:
+            await asyncio.wait_for(self._channel_ready.wait(), timeout)
+            return True
+        except asyncio.TimeoutError:
+            return False
+    
+    def is_channel_ready(self):
+        return self._channel_ready.is_set()
 
 
 StreamBot = StreamBotClient()
-
 multi_clients = {}
 work_loads = {}

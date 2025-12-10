@@ -1,3 +1,4 @@
+# (c) ShivamNox
 import math
 import asyncio
 import logging
@@ -7,7 +8,7 @@ from ShivamNox.bot import work_loads
 from pyrogram import Client, utils, raw
 from .file_properties import get_file_ids
 from pyrogram.session import Session, Auth
-from pyrogram.errors import AuthBytesInvalid
+from pyrogram.errors import AuthBytesInvalid, PeerIdInvalid, ChannelInvalid
 from ShivamNox.server.exceptions import FIleNotFound
 from pyrogram.file_id import FileId, FileType, ThumbnailSource
 
@@ -27,14 +28,42 @@ class ByteStreamer:
         return self.cached_file_ids[id]
 
     async def generate_file_properties(self, id: int) -> FileId:
-        file_id = await get_file_ids(self.client, Var.BIN_CHANNEL, id)
-        logging.debug(f"Generated file ID and Unique ID for message with ID {id}")
-        if not file_id:
-            logging.debug(f"Message with ID {id} not found")
-            raise FIleNotFound
-        self.cached_file_ids[id] = file_id
-        logging.debug(f"Cached media message with ID {id}")
-        return self.cached_file_ids[id]
+        max_retries = 3
+        
+        for attempt in range(max_retries):
+            try:
+                # Ensure channel is resolved
+                from ShivamNox.bot.channel_fix import ensure_bin_channel
+                await ensure_bin_channel(self.client, Var.BIN_CHANNEL)
+                
+                file_id = await get_file_ids(self.client, Var.BIN_CHANNEL, id)
+                logging.debug(f"Generated file ID and Unique ID for message with ID {id}")
+                
+                if not file_id:
+                    logging.debug(f"Message with ID {id} not found")
+                    raise FIleNotFound
+                
+                self.cached_file_ids[id] = file_id
+                logging.debug(f"Cached media message with ID {id}")
+                return self.cached_file_ids[id]
+                
+            except (PeerIdInvalid, ChannelInvalid) as e:
+                logging.warning(f"⚠️ Peer error (attempt {attempt + 1}/{max_retries}): {e}")
+                
+                from ShivamNox.bot.channel_fix import reset_bin_channel
+                reset_bin_channel()
+                await asyncio.sleep(2 ** attempt)
+                
+            except FIleNotFound:
+                raise
+                
+            except Exception as e:
+                logging.error(f"Error: {e}")
+                if attempt == max_retries - 1:
+                    raise FIleNotFound
+                await asyncio.sleep(2)
+        
+        raise FIleNotFound
 
     async def generate_media_session(self, client: Client, file_id: FileId) -> Session:
         media_session = client.media_sessions.get(file_id.dc_id, None)
@@ -141,7 +170,13 @@ class ByteStreamer:
         client = self.client
         work_loads[index] += 1
         logging.debug(f"Starting to yield file with client {index}.")
-        media_session = await self.generate_media_session(client, file_id)
+        
+        try:
+            media_session = await self.generate_media_session(client, file_id)
+        except Exception as e:
+            logging.error(f"Failed to create media session: {e}")
+            work_loads[index] -= 1
+            return
 
         current_part = 1
         location = await self.get_location(file_id)
@@ -156,7 +191,7 @@ class ByteStreamer:
                     )
                 except OSError as e:
                     logging.error(f"Connection error while fetching file: {e}")
-                    break  # Stop streaming if the connection is lost
+                    break
 
                 if isinstance(r, raw.types.upload.File):
                     chunk = r.bytes

@@ -1,0 +1,10 @@
+API_ID=12345678
+API_HASH=78929h2io3u9hwi2992wj902w
+BOT_TOKEN=8052739823:AAHlEjhICyP6yLU8sXkM0koiwnipfj-E
+name=Filedebd
+BIN_CHANNEL=-1003256929762
+OWNER_ID=0123456789
+OWNER_USERNAME=OwnerTGusername
+SERVER_URL=https://your-server-name.onrender.com
+DATABASE_URL=mongodb+srv://username:userpasswored@cluster0.dexcixr.mongodb.net/?appName=Cluster0
+UPDATES_CHANNEL=UpdateChannelName

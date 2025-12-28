@@ -14,6 +14,12 @@ from pyrogram.file_id import FileId, FileType, ThumbnailSource
 from collections import OrderedDict
 import time
 
+# Suppress connection error logs
+logging.getLogger("asyncio").setLevel(logging.WARNING)
+logging.getLogger("pyrogram.session").setLevel(logging.WARNING)
+logging.getLogger("pyrogram.connection").setLevel(logging.WARNING)
+# ==========================================
+
 logger = logging.getLogger(__name__)
 
 

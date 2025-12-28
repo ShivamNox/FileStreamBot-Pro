@@ -1,14 +1,12 @@
 # (c) ShivamNox
 import logging
 
-# ============ ADD THIS AT THE VERY TOP ============
+# Suppress asyncio warnings
 logging.getLogger('asyncio').setLevel(logging.ERROR)
-# ==================================================
 
 from pyrogram import Client
 import pyromod.listen
 from ..vars import Var
-from os import getcwd
 import asyncio
 
 logger = logging.getLogger(__name__)
@@ -22,7 +20,10 @@ class StreamBotClient(Client):
             api_hash=Var.API_HASH,
             bot_token=Var.BOT_TOKEN,
             sleep_threshold=Var.SLEEP_THRESHOLD,
-            workers=Var.WORKERS
+            workers=Var.WORKERS,
+            # ============ ADD PLUGINS HERE ============
+            plugins=dict(root="ShivamNox/bot/plugins")
+            # ==========================================
         )
         self.username = None
         self.me = None

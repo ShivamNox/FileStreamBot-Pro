@@ -1,10 +1,9 @@
 # (c) ShivamNox
+import logging
+import asyncio
 from pyrogram import Client
 import pyromod.listen
 from ..vars import Var
-from os import getcwd
-import asyncio
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -12,7 +11,7 @@ logger = logging.getLogger(__name__)
 class StreamBotClient(Client):
     def __init__(self):
         super().__init__(
-            name='Web Streamer',
+            name='WebStreamer',
             api_id=Var.API_ID,
             api_hash=Var.API_HASH,
             bot_token=Var.BOT_TOKEN,
@@ -28,6 +27,9 @@ class StreamBotClient(Client):
         self.me = await self.get_me()
         self.username = self.me.username
         logger.info(f"✅ Bot started as @{self.username}")
+        
+        # Wait for connection to stabilize
+        await asyncio.sleep(2)
         
         # Resolve BIN_CHANNEL with retry
         from .channel_fix import ensure_bin_channel
@@ -46,6 +48,7 @@ class StreamBotClient(Client):
         return self
     
     async def wait_channel_ready(self, timeout=60):
+        """Wait for channel to be ready"""
         try:
             await asyncio.wait_for(self._channel_ready.wait(), timeout)
             return True
@@ -53,6 +56,7 @@ class StreamBotClient(Client):
             return False
     
     def is_channel_ready(self):
+        """Check if channel is ready"""
         return self._channel_ready.is_set()
 
 

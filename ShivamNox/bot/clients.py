@@ -7,18 +7,13 @@ from ShivamNox.utils.config_parser import TokenParser
 from . import multi_clients, work_loads, StreamBot
 from .channel_fix import ensure_bin_channel
 
-# Suppress asyncio socket warnings
-logging.getLogger('asyncio').setLevel(logging.ERROR)
-
 logger = logging.getLogger(__name__)
 
 
 async def initialize_clients():
     # Wait for main bot channel to be ready
     logger.info("⏳ Waiting for main bot to initialize...")
-    
-    if not await StreamBot.wait_channel_ready(timeout=120):
-        logger.warning("⚠️ Main bot channel not ready, continuing anyway...")
+    await StreamBot.wait_channel_ready(timeout=120)
     
     multi_clients[0] = StreamBot
     work_loads[0] = 0
@@ -30,10 +25,6 @@ async def initialize_clients():
     
     async def start_client(client_id, token):
         try:
-            # ============ ADD DELAY BETWEEN CLIENT STARTS ============
-            await asyncio.sleep(client_id * 3)  # Stagger client starts by 3 seconds each
-            # ==========================================================
-            
             print(f"Starting - Client {client_id}")
             if client_id == len(all_tokens):
                 await asyncio.sleep(2)
@@ -49,9 +40,6 @@ async def initialize_clients():
                 in_memory=True
             ).start()
             
-            # Small delay after start
-            await asyncio.sleep(2)
-            
             # Resolve channel for this client too
             if await ensure_bin_channel(client, Var.BIN_CHANNEL):
                 work_loads[client_id] = 0
@@ -66,15 +54,10 @@ async def initialize_clients():
             logging.error(f"Failed starting Client - {client_id} Error:", exc_info=True)
             return None
     
-    # ============ START CLIENTS SEQUENTIALLY INSTEAD OF PARALLEL ============
-    valid_clients = {}
-    for i, token in all_tokens.items():
-        result = await start_client(i, token)
-        if result:
-            client_id, client = result
-            valid_clients[client_id] = client
-    # =========================================================================
+    clients = await asyncio.gather(*[start_client(i, token) for i, token in all_tokens.items()])
     
+    # Filter out None values
+    valid_clients = {k: v for k, v in clients if k is not None and v is not None}
     multi_clients.update(valid_clients)
     
     if len(multi_clients) != 1:

@@ -11,24 +11,31 @@ logger = logging.getLogger(__name__)
 
 
 async def initialize_clients():
+    """Initialize all bot clients"""
+    
     # Wait for main bot channel to be ready
     logger.info("⏳ Waiting for main bot to initialize...")
-    await StreamBot.wait_channel_ready(timeout=120)
     
+    if not await StreamBot.wait_channel_ready(timeout=120):
+        logger.warning("⚠️ Main bot channel not ready, continuing anyway...")
+    
+    # Add main bot to clients
     multi_clients[0] = StreamBot
     work_loads[0] = 0
     
+    # Parse additional tokens
     all_tokens = TokenParser().parse_from_env()
     if not all_tokens:
         print("No additional clients found, using default client")
         return
     
     async def start_client(client_id, token):
+        """Start a single client with delay"""
         try:
+            # Stagger client starts to avoid rate limits
+            await asyncio.sleep(client_id * 2)
+            
             print(f"Starting - Client {client_id}")
-            if client_id == len(all_tokens):
-                await asyncio.sleep(2)
-                print("This will take some time, please wait...")
             
             client = await Client(
                 name=str(client_id),
@@ -40,30 +47,34 @@ async def initialize_clients():
                 in_memory=True
             ).start()
             
-            # Resolve channel for this client too
+            # Wait for connection to stabilize
+            await asyncio.sleep(2)
+            
+            # Resolve channel for this client
             if await ensure_bin_channel(client, Var.BIN_CHANNEL):
                 work_loads[client_id] = 0
-                logger.info(f"✅ Client {client_id} channel resolved")
+                logger.info(f"✅ Client {client_id} ready")
                 return client_id, client
             else:
-                logger.warning(f"⚠️ Client {client_id} channel failed, stopping...")
+                logger.warning(f"⚠️ Client {client_id} channel failed")
                 await client.stop()
                 return None
                 
-        except Exception:
-            logging.error(f"Failed starting Client - {client_id} Error:", exc_info=True)
+        except Exception as e:
+            logger.error(f"Failed to start Client {client_id}: {e}")
             return None
     
-    clients = await asyncio.gather(*[start_client(i, token) for i, token in all_tokens.items()])
+    # Start clients sequentially to avoid rate limits
+    for i, token in all_tokens.items():
+        result = await start_client(i, token)
+        if result:
+            client_id, client = result
+            multi_clients[client_id] = client
     
-    # Filter out None values
-    valid_clients = {k: v for k, v in clients if k is not None and v is not None}
-    multi_clients.update(valid_clients)
-    
-    if len(multi_clients) != 1:
+    if len(multi_clients) > 1:
         Var.MULTI_CLIENT = True
-        print("Multi-Client Mode Enabled")
+        print(f"Multi-Client Mode: {len(multi_clients)} clients active")
     else:
-        print("No additional clients were initialized, using default client")
+        print("Single client mode")
     
     logger.info(f"✅ Total active clients: {len(multi_clients)}")

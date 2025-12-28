@@ -4,10 +4,34 @@ import glob
 import asyncio
 import logging
 import importlib
+from pathlib import Pathimport os
+import sys
+import glob
+import asyncio
+import logging
+import importlib
 from pathlib import Path
+
+# ============ PROPER LOGGING CONFIGURATION ============
+# Set specific log levels instead of hiding everything
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
+
+# Reduce noise from libraries but keep important messages
+logging.getLogger("asyncio").setLevel(logging.WARNING)
+logging.getLogger("aiohttp").setLevel(logging.WARNING)
+logging.getLogger("aiohttp.web").setLevel(logging.WARNING)
+logging.getLogger("pyrogram").setLevel(logging.WARNING)
+logging.getLogger("pyrogram.session").setLevel(logging.WARNING)
+logging.getLogger("pyrogram.connection").setLevel(logging.WARNING)
+# ======================================================
+
 from pyrogram import Client, idle
 from .bot import StreamBot
 from .vars import Var
+# ... rest of your imports and code
 from aiohttp import web
 from .server import web_server
 from .utils.keepalive import ping_server

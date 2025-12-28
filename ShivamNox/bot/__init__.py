@@ -1,10 +1,15 @@
 # (c) ShivamNox
+import logging
+
+# ============ ADD THIS AT THE VERY TOP ============
+logging.getLogger('asyncio').setLevel(logging.ERROR)
+# ==================================================
+
 from pyrogram import Client
 import pyromod.listen
 from ..vars import Var
 from os import getcwd
 import asyncio
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -28,6 +33,9 @@ class StreamBotClient(Client):
         self.me = await self.get_me()
         self.username = self.me.username
         logger.info(f"✅ Bot started as @{self.username}")
+        
+        # Small delay to let connection stabilize
+        await asyncio.sleep(2)
         
         # Resolve BIN_CHANNEL with retry
         from .channel_fix import ensure_bin_channel

@@ -1,13 +1,10 @@
 # (c) ShivamNox
-import logging
-
-# Suppress asyncio warnings
-logging.getLogger('asyncio').setLevel(logging.ERROR)
-
 from pyrogram import Client
 import pyromod.listen
 from ..vars import Var
+from os import getcwd
 import asyncio
+import logging
 
 logger = logging.getLogger(__name__)
 
@@ -21,7 +18,6 @@ class StreamBotClient(Client):
             bot_token=Var.BOT_TOKEN,
             sleep_threshold=Var.SLEEP_THRESHOLD,
             workers=Var.WORKERS
-            # NO plugins= here since we use @StreamBot.on_message
         )
         self.username = None
         self.me = None
@@ -33,8 +29,7 @@ class StreamBotClient(Client):
         self.username = self.me.username
         logger.info(f"✅ Bot started as @{self.username}")
         
-        await asyncio.sleep(2)
-        
+        # Resolve BIN_CHANNEL with retry
         from .channel_fix import ensure_bin_channel
         
         for attempt in range(3):
@@ -46,6 +41,7 @@ class StreamBotClient(Client):
             await asyncio.sleep(5)
         else:
             logger.error("❌ Failed to resolve BIN_CHANNEL after 3 attempts")
+            logger.error(f"Make sure bot is admin in channel ID: {Var.BIN_CHANNEL}")
         
         return self
     

@@ -28,10 +28,10 @@ class StreamBotClient(Client):
         self.username = self.me.username
         logger.info(f"✅ Bot started as @{self.username}")
         
-        # Wait for connection to stabilize
+        # Small delay for connection stability
         await asyncio.sleep(2)
         
-        # Resolve BIN_CHANNEL with retry
+        # Resolve BIN_CHANNEL
         from .channel_fix import ensure_bin_channel
         
         for attempt in range(3):
@@ -42,13 +42,11 @@ class StreamBotClient(Client):
                 break
             await asyncio.sleep(5)
         else:
-            logger.error("❌ Failed to resolve BIN_CHANNEL after 3 attempts")
-            logger.error(f"Make sure bot is admin in channel ID: {Var.BIN_CHANNEL}")
+            logger.error("❌ Failed to resolve BIN_CHANNEL")
         
         return self
     
     async def wait_channel_ready(self, timeout=60):
-        """Wait for channel to be ready"""
         try:
             await asyncio.wait_for(self._channel_ready.wait(), timeout)
             return True
@@ -56,7 +54,6 @@ class StreamBotClient(Client):
             return False
     
     def is_channel_ready(self):
-        """Check if channel is ready"""
         return self._channel_ready.is_set()
 
 

@@ -1,38 +1,33 @@
-# ShivamNox/utils/keepalive.py
-
 import asyncio
 import aiohttp
 import logging
 from ShivamNox.vars import Var
 
-# Suppress aiohttp warnings
-logging.getLogger("aiohttp").setLevel(logging.ERROR)
 logger = logging.getLogger(__name__)
 
 async def ping_server():
-    """
-    Keep-alive function to prevent Render/Heroku from sleeping
-    """
-    # Wait for initial stabilization
-    await asyncio.sleep(30)  # Wait 30 seconds before first ping
+    """Keep-alive to prevent Render from sleeping"""
     
-    sleep_time = 300  # 5 minutes between pings (was probably too frequent)
+    # Initial delay
+    await asyncio.sleep(30)
+    
+    url = f"https://{Var.FQDN}/" if Var.FQDN else None
+    
+    if not url:
+        logger.warning("No FQDN set, keep-alive disabled")
+        return
+    
+    logger.info(f"🏓 Keep-alive started for {url}")
     
     while True:
         try:
-            async with aiohttp.ClientSession(
-                timeout=aiohttp.ClientTimeout(total=10)
-            ) as session:
-                url = f"https://{Var.FQDN}/" if hasattr(Var, 'FQDN') and Var.FQDN else None
-                
-                if url:
-                    async with session.get(url) as resp:
-                        logger.debug(f"Keep-alive ping: {resp.status}")
-                        
+            timeout = aiohttp.ClientTimeout(total=10)
+            async with aiohttp.ClientSession(timeout=timeout) as session:
+                async with session.get(url) as resp:
+                    logger.debug(f"Keep-alive ping: {resp.status}")
         except asyncio.CancelledError:
             break
         except Exception as e:
-            # Don't log connection errors as they're expected sometimes
-            logger.debug(f"Keep-alive ping failed (normal): {e}")
+            logger.debug(f"Keep-alive error (normal): {e}")
         
-        await asyncio.sleep(sleep_time)
+        await asyncio.sleep(300)  # 5 minutes

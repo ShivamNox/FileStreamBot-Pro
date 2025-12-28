@@ -20,10 +20,8 @@ class StreamBotClient(Client):
             api_hash=Var.API_HASH,
             bot_token=Var.BOT_TOKEN,
             sleep_threshold=Var.SLEEP_THRESHOLD,
-            workers=Var.WORKERS,
-            # ============ ADD PLUGINS HERE ============
-            plugins=dict(root="ShivamNox/bot/plugins")
-            # ==========================================
+            workers=Var.WORKERS
+            # NO plugins= here since we use @StreamBot.on_message
         )
         self.username = None
         self.me = None
@@ -35,10 +33,8 @@ class StreamBotClient(Client):
         self.username = self.me.username
         logger.info(f"✅ Bot started as @{self.username}")
         
-        # Small delay to let connection stabilize
         await asyncio.sleep(2)
         
-        # Resolve BIN_CHANNEL with retry
         from .channel_fix import ensure_bin_channel
         
         for attempt in range(3):
@@ -50,7 +46,6 @@ class StreamBotClient(Client):
             await asyncio.sleep(5)
         else:
             logger.error("❌ Failed to resolve BIN_CHANNEL after 3 attempts")
-            logger.error(f"Make sure bot is admin in channel ID: {Var.BIN_CHANNEL}")
         
         return self
     

@@ -59,6 +59,77 @@ async def start(bot, update):
         quote=True
     )
 
+
+dmca = """📜 **DMCA Notice**
+
+By clicking or generating a permanent link, you confirm that the files belong to you and do not contain any copyrighted material.
+
+We do not host or promote copyrighted content. All files are provided by users. If a valid copyright owner submits a report, the reported file will be removed immediately.
+
+18+ content, adult material, or nudity is strictly prohibited. Do not generate permanent links for such content.
+
+If our admin detects any violation, your account will be immediately banned from using the bot.
+
+Repeated or serious violations may result in permanent account restrictions or termination."""
+
+@StreamBot.on_message(filters.command("dmca"))
+async def dmca_cmd(bot, update):
+    await update.reply_text(
+        text=dmca,
+        disable_web_page_preview=True,
+        quote=True
+    )
+
+
+terms = """📄 **Terms & Conditions**
+
+This bot generates direct download and streaming links for files provided by users.
+
+By using this bot and especially by generating a **permanent link**, you agree to the following:
+
+• You are solely responsible for the files you upload and share.
+• You confirm that your content does not violate copyright laws.
+• Permanent links are created at your own risk and responsibility.
+• 18+ content, adult material, nudity, or illegal content is strictly forbidden.
+• Do not upload or share copyrighted, pirated, or unauthorized material.
+
+We do not verify user-uploaded files and do not claim ownership of any content.
+
+If any violation is detected or reported:
+• The content will be removed immediately.
+• Your account may be temporarily or permanently banned.
+
+By continuing to use this bot, you agree to these Terms & the /dmca policy."""
+
+
+@StreamBot.on_message(filters.command("terms"))
+async def terms_cmd(bot, update):
+    await update.reply_text(
+        text=terms,
+        disable_web_page_preview=True,
+        quote=True
+    )
+
+
+@StreamBot.on_message(filters.command("start"))
+async def start_cmd(bot, update):
+    if len(update.command) > 1:
+        payload = update.command[1]
+
+        if payload == "dmca":
+            await update.reply_text(dmca, quote=True)
+            return
+
+        if payload == "terms":
+            await update.reply_text(terms, quote=True)
+            return
+
+    await update.reply_text(
+        "Welcome! Use /terms and /dmca to read our policies.",
+        quote=True
+    )
+
+
     
     
 @StreamBot.on_message(filters.command("list"))

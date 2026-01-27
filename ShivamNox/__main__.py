@@ -54,11 +54,13 @@ async def set_bot_commands():
     """Set bot commands"""
     commands = [
         BotCommand("start", "🚀 Launch the bot"),
-        BotCommand("ping", "📶 Check responsiveness"),
         BotCommand("about", "ℹ️ About this bot"),
+        BotCommand("help", "❓ Get help"),
+        BotCommand("terms", "📄 Terms & Conditions"),
+        BotCommand("dmca", "📜 DMCA / Copyright Policy"),
+        BotCommand("ping", "📶 Check responsiveness"),
         BotCommand("status", "📊 Bot status"),
         BotCommand("list", "📜 All commands"),
-        BotCommand("help", "❓ Get help"),
     ]
     try:
         await StreamBot.set_bot_commands(commands)

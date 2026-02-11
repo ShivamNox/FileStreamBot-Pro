@@ -111,27 +111,6 @@ async def terms_cmd(bot, update):
     )
 
 
-@StreamBot.on_message(filters.command("start"))
-async def start_cmd(bot, update):
-    if len(update.command) > 1:
-        payload = update.command[1]
-
-        if payload == "dmca":
-            await update.reply_text(dmca, quote=True)
-            return
-
-        if payload == "terms":
-            await update.reply_text(terms, quote=True)
-            return
-
-    await update.reply_text(
-        "Welcome! Use /terms and /dmca to read our policies.",
-        quote=True
-    )
-
-
-    
-    
 @StreamBot.on_message(filters.command("list"))
 async def list(l, m):
     LIST_MSG = "Hi! {} Here is a list of all my commands \n \n 1 . `start⚡️` \n 2. `help📚` \n 3. `login🔑` \n 4.`Subscribe ❤️` \n 5. `ping📡` \n 6. `status📊` \n 7. `DC` this tells your telegram dc \n 8. `maintainers😎` "
